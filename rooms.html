@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rooms</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    .navbar h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .logout-btn {
+      background-color: white;
+      color: #007BFF;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #0056b3;
+      color: white;
+    }
+
+    h1 { margin-top: 90px; margin-bottom: 10px; }
+
+    .floor { margin: 30px auto; }
+
+    .floor h2 { color: #007BFF; }
+
+    .rooms {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .room {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.12s;
+      font-weight: bold;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    .room:hover { transform: translateY(-3px); }
+
+    .room small { display:block; margin-top:6px; font-size:12px; }
+
+    .occupied { background-color: #ff4d4d; color: white; }
+    .empty { background-color: #66bb6a; color: white; }
+
+    /* timer badge */
+    .timer-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    a.back {
+      display: block;
+      margin-top: 40px;
+      color: #007BFF;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h2>BMSCE - Rooms</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <h1 id="blockName"></h1>
+  <div id="floors"></div>
+  <a href="blocks-dashboard.html" class="back">⬅ Back to Blocks</a>
+
+  <script>
+    // --- config
+    const CLASS_DURATION_MS = 55 * 60 * 1000; // 55 minutes
+
+    function now() { return Date.now(); }
+    function formatMMSS(ms) {
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+      const s = (totalSec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const block = params.get('block') || 'Unknown Block';
+    const mode = localStorage.getItem('facultyAction');
+    document.getElementById('blockName').textContent = `${block} (${mode === 'take' ? 'Take Class' : 'View Empty'})`;
+
+    const floorsContainer = document.getElementById('floors');
+    const floors = [
+      { name: 'Ground Floor', prefix: 0 },
+      { name: 'First Floor', prefix: 1 },
+      { name: 'Second Floor', prefix: 2 }
+    ];
+
+    const timers = {};
+    const roomElements = {};
+    let roomStatus = JSON.parse(localStorage.getItem('roomStatus') || '{}');
+
+    floors.forEach(floor => {
+      const floorDiv = document.createElement('div');
+      floorDiv.className = 'floor';
+
+      const title = document.createElement('h2');
+      title.textContent = floor.name;
+      floorDiv.appendChild(title);
+
+      const roomsDiv = document.createElement('div');
+      roomsDiv.className = 'rooms';
+
+      for (let i = 1; i <= 5; i++) {
+        const roomNum = floor.prefix === 0 ? `0${i}` : `${floor.prefix}${i}`;
+        const key = `${block}-Room ${roomNum}`;
+        const data = roomStatus[key] || { status: 'empty' };
+
+        const room = document.createElement('div');
+        room.className = 'room ' + (data.status === 'occupied' ? 'occupied' : 'empty');
+        room.dataset.key = key;
+        room.innerHTML = `<div>${roomNum}</div><small>${data.status === 'occupied' ? 'Not Empty' : 'Empty'}</small>`;
+
+        const badge = document.createElement('div');
+        badge.className = 'timer-badge';
+        badge.style.display = 'none';
+        room.appendChild(badge);
+
+        room.addEventListener('click', () => handleRoomClick(block, roomNum, room));
+        roomsDiv.appendChild(room);
+        roomElements[key] = room;
+      }
+
+      floorDiv.appendChild(roomsDiv);
+      floorsContainer.appendChild(floorDiv);
+    });
+
+    function handleRoomClick(blockName, roomNum, roomDiv) {
+      const key = roomDiv.dataset.key;
+      roomStatus = JSON.parse(localStorage.getItem('roomStatus') || '{}');
+
+      if (mode === 'take') {
+        const taking = confirm(`Mark Room ${roomNum} in ${blockName} as "Class Ongoing"? Click Cancel to mark as Empty.`);
+        if (taking) {
+          const start = now();
+          const end = start + CLASS_DURATION_MS;
+          roomStatus[key] = { status: 'occupied', startTime: start, endTime: end };
+          localStorage.setItem('roomStatus', JSON.stringify(roomStatus));
+          setRoomOccupiedUI(roomDiv, roomNum, key, end);
+        } else {
+          roomStatus[key] = { status: 'empty' };
+          localStorage.setItem('roomStatus', JSON.stringify(roomStatus));
+          setRoomEmptyUI(roomDiv);
+          clearRoomTimer(key);
+        }
+      } else {
+        const data = roomStatus[key] || { status: 'empty' };
+        alert(`Room ${roomNum} in ${blockName} is currently ${data.status === 'occupied' ? 'NOT EMPTY 🚫' : 'EMPTY ✅'}`);
+      }
+    }
+
+    function setRoomOccupiedUI(roomDiv, roomNum, key, endTime) {
+      roomDiv.classList.remove('empty');
+      roomDiv.classList.add('occupied');
+      const small = roomDiv.querySelector('small');
+      if (small) small.textContent = 'Not Empty';
+      startRoomTimer(key, roomDiv, roomNum, endTime);
+    }
+
+    function setRoomEmptyUI(roomDiv) {
+      roomDiv.classList.remove('occupied');
+      roomDiv.classList.add('empty');
+      const small = roomDiv.querySelector('small');
+      if (small) small.textContent = 'Empty';
+      const badge = roomDiv.querySelector('.timer-badge');
+      if (badge) badge.style.display = 'none';
+    }
+
+    function startRoomTimer(key, roomDiv, roomNum, endTime) {
+      clearRoomTimer(key);
+      const badge = roomDiv.querySelector('.timer-badge');
+      if (!badge) return;
+
+      function tick() {
+        const remaining = endTime - now();
+        if (remaining <= 0) {
+          clearRoomTimer(key);
+          roomStatus = JSON.parse(localStorage.getItem('roomStatus') || '{}');
+          roomStatus[key] = { status: 'empty' };
+          localStorage.setItem('roomStatus', JSON.stringify(roomStatus));
+          setRoomEmptyUI(roomDiv);
+          alert(`⏰ 55 minutes are over! Class in ${roomNum} is now marked Empty.`);
+          return;
+        }
+        badge.textContent = formatMMSS(remaining);
+        badge.style.display = 'block';
+      }
+
+      tick();
+      timers[key] = setInterval(tick, 1000);
+    }
+
+    function clearRoomTimer(key) {
+      if (timers[key]) {
+        clearInterval(timers[key]);
+        delete timers[key];
+      }
+      const el = roomElements[key];
+      if (el) {
+        const b = el.querySelector('.timer-badge');
+        if (b) b.style.display = 'none';
+      }
+    }
+
+    (function resumeTimersOnLoad() {
+      roomStatus = JSON.parse(localStorage.getItem('roomStatus') || '{}');
+      for (const key in roomStatus) {
+        const data = roomStatus[key];
+        if (data && data.status === 'occupied' && data.endTime && now() < data.endTime) {
+          const el = roomElements[key];
+          if (el) {
+            const parts = key.split('Room ');
+            const roomNum = parts[1] || '';
+            setRoomOccupiedUI(el, roomNum, key, data.endTime);
+          }
+        } else if (data && data.status === 'occupied' && data.endTime && now() >= data.endTime) {
+          roomStatus[key] = { status: 'empty' };
+        }
+      }
+      localStorage.setItem('roomStatus', JSON.stringify(roomStatus));
+    })();
+
+    window.addEventListener('beforeunload', () => {
+      for (const k in timers) clearInterval(timers[k]);
+    });
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

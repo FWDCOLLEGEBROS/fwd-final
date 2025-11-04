@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Block</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      text-align: center;
+      padding-top: 60px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .block-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 25px;
+    }
+
+    .block {
+      width: 200px;
+      height: 120px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      line-height: 120px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .block:hover {
+      background-color: #007BFF;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    a.back {
+      display: block;
+      margin-top: 40px;
+      color: #007BFF;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar" style="position:fixed;top:0;width:100%;background-color:#007BFF;color:white;padding:10px;text-align:center;">
+    <h2>BMSCE - Select Block</h2>
+  </div>
+
+  <h1>Select a Block</h1>
+  <div class="block-container">
+    <a class="block" href="rooms.html?block=PG Block">PG Block</a>
+    <a class="block" href="rooms.html?block=APS Block">APS Block</a>
+    <a class="block" href="rooms.html?block=Science Block">Science Block</a>
+    <a class="block" href="rooms.html?block=Mechanical Block">Mechanical Block</a>
+    <a class="block" href="rooms.html?block=PJ Block">PJ Block</a>
+  </div>
+
+  <a href="faculty-dashboard.html" class="back">⬅ Back to Dashboard</a>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    if (action) localStorage.setItem('facultyAction', action);
+  </script>
+  <script src="logout.js"></script>
+</body>
+
+</html>

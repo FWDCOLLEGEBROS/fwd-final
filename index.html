@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empty Classroom Tracker - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      text-align: center;
+      padding-top: 140px;
+      margin: 0;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      padding: 10px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .navbar img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .navbar h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .login-box {
+      background: white;
+      display: inline-block;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input {
+      display: block;
+      width: 250px;
+      margin: 10px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .remember {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      text-align: center;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <img src="bmsce-logo.png" alt="BMSCE Logo">
+    <h2>BMSCE - Empty Classroom Tracker</h2>
+  </header>
+
+  <div class="login-box">
+    <h1>Welcome</h1>
+    <h2>Faculty Login</h2>
+    <input type="text" id="email" placeholder="Enter your email">
+    <input type="password" id="password" placeholder="Enter your password">
+    <input type="text" id="securityCode" placeholder="Enter Security Code">
+
+    <div class="remember">
+      <input type="checkbox" id="remember">
+      <label for="remember">Remember me</label>
+    </div>
+
+    <button onclick="login()">Submit</button>
+  </div>
+
+  <footer>
+    © 2025 BMS College of Engineering | All Rights Reserved
+  </footer>
+
+  <script>
+    const savedEmail = localStorage.getItem("savedEmail");
+    if (savedEmail) {
+      document.getElementById("email").value = savedEmail;
+      document.getElementById("remember").checked = true;
+    }
+
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const code = document.getElementById("securityCode").value.trim();
+      const remember = document.getElementById("remember").checked;
+
+      if (email === "" || password === "" || code === "") {
+        alert("Please enter all fields.");
+        return;
+      }
+
+      if (code !== "BMS123") {
+        alert("Invalid Security Code.");
+        return;
+      }
+
+      if (!/^[a-zA-Z0-9._%+-]+@bmsce\.ac\.in$/.test(email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      if (remember) localStorage.setItem("savedEmail", email);
+      else localStorage.removeItem("savedEmail");
+
+      localStorage.setItem("facultyEmail", email);
+      window.location.href = "faculty-dashboard.html";
+    }
+  </script>
+</body>
+
+</html>
