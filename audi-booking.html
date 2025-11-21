@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audi Booking</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      text-align: center;
+      padding-top: 90px;
+      margin: 0;
+    }
+
+    /* NAVBAR SAME AS OTHER BLOCKS */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    .navbar h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .logout-btn {
+      background-color: white;
+      color: #007BFF;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #0056b3;
+      color: white;
+    }
+
+    /* BACK BUTTON */
+    .back-btn {
+      display: inline-block;
+      margin: 15px;
+      padding: 10px 18px;
+      background: #1e90ff;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .back-btn:hover {
+      background: #0c74d4;
+    }
+
+    .slot {
+      background:white;
+      width:330px;
+      margin:12px auto;
+      padding:12px;
+      border-radius:8px;
+      font-size:17px;
+      font-weight:bold;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .booked {
+      background:#e63946;
+      color:white;
+    }
+
+    .available {
+      background:#2a9d8f;
+      color:white;
+      cursor:pointer;
+    }
+
+    .available:hover {
+      background:#21867a;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <h2 id="title">Audi Booking</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <a href="auditorium.html" class="back-btn">← Back to Auditorium</a>
+
+  <h2>Select Date</h2>
+
+  <input type="date" id="datePicker" onchange="loadSlots()">
+
+  <h2>Slots</h2>
+  <div id="slotList"></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const audi = params.get("audi");
+    document.getElementById("title").textContent = `${audi} Booking`;
+
+    function loadSlots() {
+      const date = document.getElementById("datePicker").value;
+      if (!date) return;
+
+      const key = `${audi}-${date}`;
+      const bookings = JSON.parse(localStorage.getItem(key) || "[]");
+
+      const slotList = document.getElementById("slotList");
+      slotList.innerHTML = "";
+
+      const allSlots = [
+        "9:00 AM - 11:00 AM",
+        "11:00 AM - 1:00 PM",
+        "2:00 PM - 4:00 PM",
+        "4:00 PM - 6:00 PM"
+      ];
+
+      allSlots.forEach(slot => {
+        const div = document.createElement("div");
+        div.className = "slot " + (bookings.includes(slot) ? "booked" : "available");
+        div.textContent = slot;
+
+        if (!bookings.includes(slot)) {
+          div.onclick = () => bookSlot(date, slot);
+        }
+
+        slotList.appendChild(div);
+      });
+    }
+
+    function bookSlot(date, slot) {
+      const key = `${audi}-${date}`;
+      let bookings = JSON.parse(localStorage.getItem(key) || "[]");
+
+      if (bookings.includes(slot)) {
+        alert("Already booked!");
+        return;
+      }
+
+      bookings.push(slot);
+      localStorage.setItem(key, JSON.stringify(bookings));
+
+      alert(`Booked ${slot} on ${date}`);
+      loadSlots();
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>
